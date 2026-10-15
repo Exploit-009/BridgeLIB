@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b5fff">
+  <meta name="description" content="BridgeLIB connects Liberian learners, teachers, and schools with lessons, practice, and digital learning tools.">
+  <title>BridgeLIB — Learn. Practice. Progress.</title>
+  <link rel="stylesheet" href="./css/styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.50.0"></script>
+  <script defer src="./js/config.js"></script>
+  <script defer src="./js/app.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#" aria-label="BridgeLIB home">
+      <span class="brand-mark">B</span><span>Bridge<span class="brand-light">LIB</span></span>
+    </a>
+    <nav class="topnav">
+      <a href="#features">Features</a>
+      <a href="#pathways">Learning paths</a>
+      <button id="navLogin" class="button button-quiet">Sign in</button>
+    </nav>
+  </header>
+
+  <main>
+    <section id="hero" class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">BUILT FOR LEARNING IN LIBERIA</p>
+        <h1>Learn better.<br><span>Move forward.</span></h1>
+        <p class="hero-text">Lessons, practice, school classes, and exam preparation — brought together in one learning platform.</p>
+        <div class="hero-actions">
+          <button id="heroSignup" class="button button-primary">Create free account <span aria-hidden="true">→</span></button>
+          <button id="heroLogin" class="button button-outline">Sign in</button>
+        </div>
+        <p class="fine-print">A growing education platform for learners and teachers across Liberia.</p>
+      </div>
+      <div class="hero-art" aria-label="BridgeLIB learning dashboard illustration">
+        <div class="art-orbit orbit-one"></div><div class="art-orbit orbit-two"></div>
+        <div class="art-card art-main">
+          <div class="art-card-top"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="art-label">MY LEARNING</span></div>
+          <div class="art-title">Your next step starts here.</div>
+          <div class="art-progress"><span></span></div>
+          <div class="art-row"><span class="art-icon blue">M</span><div><b>Mathematics</b><small>Practice and improve</small></div><span class="art-arrow">↗</span></div>
+          <div class="art-row"><span class="art-icon green">E</span><div><b>English Language</b><small>Lessons and revision</small></div><span class="art-arrow">↗</span></div>
+          <div class="art-row"><span class="art-icon violet">Q</span><div><b>Quizzes & exams</b><small>Track your progress</small></div><span class="art-arrow">↗</span></div>
+        </div>
+        <div class="floating-tag tag-top">📚 Keep learning</div>
+        <div class="floating-tag tag-bottom">✓ Progress, step by step</div>
+      </div>
+    </section>
+
+    <section id="features" class="section">
+      <div class="section-heading">
+        <p class="eyebrow">ONE CONNECTED PLATFORM</p>
+        <h2>Everything works together.</h2>
+        <p>BridgeLIB is being built to connect learning, teaching, and school life in one secure place.</p>
+      </div>
+      <div class="feature-grid">
+        <article class="feature-card"><div class="feature-icon blue-bg">▤</div><h3>Lessons & subjects</h3><p>Organize learning by education level, grade, subject, and topic.</p></article>
+        <article class="feature-card"><div class="feature-icon green-bg">✓</div><h3>Practice & exams</h3><p>Build toward question banks, past papers, digital tests, and feedback.</p></article>
+        <article class="feature-card"><div class="feature-icon violet-bg">♧</div><h3>Classes & teachers</h3><p>Give teachers a place to manage multiple classes and student work.</p></article>
+        <article class="feature-card"><div class="feature-icon amber-bg">↗</div><h3>Progress history</h3><p>Keep track of attempts, results, and topics that need more practice.</p></article>
+      </div>
+    </section>
+
+    <section id="pathways" class="section pathways">
+      <div class="section-heading">
+        <p class="eyebrow">CHOOSE YOUR PATH</p>
+        <h2>One account. Your learning journey.</h2>
+        <p>Choose the path that best describes your current learning goal.</p>
+      </div>
+      <div class="path-grid">
+        <article class="path-card"><span class="path-number">01</span><h3>School learner</h3><p>For primary, junior high, and senior high students.</p><button class="text-button pathSignup" data-path="school_learner">Choose this path →</button></article>
+        <article class="path-card path-featured"><span class="path-number">02</span><h3>WASSCE candidate</h3><p>For learners preparing for WASSCE, including private candidates.</p><button class="text-button pathSignup" data-path="wassce_candidate">Choose this path →</button></article>
+        <article class="path-card"><span class="path-number">03</span><h3>Independent learner</h3><p>For self-study, adult learning, and revision at your own pace.</p><button class="text-button pathSignup" data-path="independent_learner">Choose this path →</button></article>
+      </div>
+    </section>
+
+    <section id="authSection" class="auth-section hidden">
+      <div class="auth-card">
+        <button id="closeAuth" class="close-button" aria-label="Close">×</button>
+        <div class="auth-heading"><span class="brand-mark">B</span><p class="eyebrow">WELCOME TO BRIDGELIB</p><h2 id="authTitle">Create your account</h2><p id="authSubtitle">Start your learning journey.</p></div>
+        <div class="auth-tabs"><button id="tabSignup" class="auth-tab active">Create account</button><button id="tabLogin" class="auth-tab">Sign in</button></div>
+        <form id="authForm">
+          <div id="nameField" class="form-field"><label for="fullName">Full name</label><input id="fullName" name="fullName" autocomplete="name" placeholder="Your full name" required></div>
+          <div id="pathField" class="form-field"><label for="learnerPath">Learning path</label><select id="learnerPath" name="learnerPath"><option value="school_learner">School learner</option><option value="wassce_candidate">WASSCE candidate</option><option value="independent_learner">Independent learner</option></select></div>
+          <div id="levelField" class="form-field"><label for="educationLevel">Education level</label><select id="educationLevel" name="educationLevel"><option value="primary">Primary school</option><option value="junior_high">Junior high school</option><option value="senior_high">Senior high school</option><option value="college_vocational">College / vocational</option><option value="other">Other / not sure yet</option></select></div>
+          <div id="gradeField" class="form-field"><label for="gradeLevel">Current grade or class</label><input id="gradeLevel" name="gradeLevel" placeholder="e.g. Grade 8, Grade 12, private candidate"></div>
+          <div id="examYearField" class="form-field hidden"><label for="examYear">Target WASSCE year (optional)</label><input id="examYear" name="examYear" type="number" min="2020" max="2100" placeholder="e.g. 2027"></div>
+          <div class="form-field"><label for="email">Email address</label><input id="email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required></div>
+          <div class="form-field"><label for="password">Password</label><input id="password" name="password" type="password" autocomplete="new-password" minlength="8" placeholder="At least 8 characters" required></div>
+          <button id="authSubmit" class="button button-primary button-full" type="submit">Create account</button>
+          <p id="authMessage" class="status-message" role="status"></p>
+        </form>
+        <p class="auth-note">Teacher and school access will use a separate verification process. Do not use this learner form to claim teacher privileges.</p>
+      </div>
+    </section>
+
+    <section id="appSection" class="app-section hidden">
+      <div class="app-header">
+        <div><p class="eyebrow">YOUR BRIDGELIB SPACE</p><h2 id="welcomeTitle">Welcome back</h2><p id="welcomeText">Your learning journey continues here.</p></div>
+        <button id="signOut" class="button button-outline">Sign out</button>
+      </div>
+      <div class="dashboard-grid">
+        <article class="dashboard-card dashboard-main"><span class="dashboard-icon">📘</span><h3>My learning</h3><p id="profileSummary">Your learning profile is loading.</p><div id="subjectList" class="subject-list"><p class="muted">Loading subjects…</p></div></article>
+        <article class="dashboard-card"><span class="dashboard-icon">🏫</span><h3>My classes</h3><p id="classInfo">Your classes will appear here when you join one.</p><div id="classList"></div></article>
+        <article class="dashboard-card"><span class="dashboard-icon">📝</span><h3>Practice & exams</h3><p>Question bank, past papers, digital examinations, and results are being built into BridgeLIB.</p><span class="feature-status">Coming in the next build phase</span></article>
+        <article class="dashboard-card"><span class="dashboard-icon">📈</span><h3>My progress</h3><p>Your quiz attempts, feedback, and learning history will be collected here as assessments are added.</p><span class="feature-status">Foundation planned</span></article>
+      </div>
+      <div id="schoolApplicationCard" class="dashboard-card school-application">
+        <div><h3>Register a school</h3><p>Submit a school profile for review. Submitting it does not mean the school is verified.</p></div>
+        <form id="schoolForm" class="school-form"><input id="schoolName" placeholder="School name" required maxlength="180"><select id="schoolType"><option value="public">Public</option><option value="private">Private</option><option value="faith_based">Faith-based</option><option value="community">Community</option><option value="other">Other</option></select><input id="schoolCounty" placeholder="County (optional)"><button class="button button-primary" type="submit">Submit school</button></form>
+        <p id="schoolMessage" class="status-message" role="status"></p>
+      </div>
+      <div id="teacherNotice" class="dashboard-card hidden"><h3>Teacher workspace</h3><p>Your account must be approved for a teacher role before you can create classes. This protects student records and class examinations.</p></div>
+    </section>
+  </main>
+
+  <footer class="footer"><a class="brand" href="#"><span class="brand-mark">B</span><span>Bridge<span class="brand-light">LIB</span></span></a><p>Building better learning opportunities in Liberia.</p><small>BridgeLIB is an independent project. Government or institutional partnerships will only be announced after formal approval.</small></footer>
+  <div id="toast" class="toast hidden" role="status"></div>
+</body>
+</html>

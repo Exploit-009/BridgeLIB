@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "BridgeLIB"
+description = "A browser-based learning platform for Liberian learners, with learner registration and sign-in, profile onboarding, subject discovery, class information, and school applications powered by the existing Supabase project."
+version = "1.0.0"
+id = "artifacts/bridgelib"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 25120
+
+[services.development]
+run = "pnpm --filter @workspace/bridgelib run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/bridgelib", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/bridgelib/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "25120"
+BASE_PATH = "/"

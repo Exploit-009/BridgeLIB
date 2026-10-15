@@ -1,45 +1,49 @@
-# [Project name]
+# BridgeLIB
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+BridgeLIB connects learners, teachers, and schools across Liberia with a shared online learning space.
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
-- `pnpm run typecheck` — full typecheck across all packages
-- `pnpm run build` — typecheck + build all packages
-- `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
-- `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+- `pnpm --filter @workspace/bridgelib run dev` — run the BridgeLIB web app through its managed workflow
+- `pnpm --filter @workspace/bridgelib run typecheck` — typecheck the web app
+- `pnpm run typecheck` — typecheck all workspace packages
+- The app uses the existing external Supabase project and its browser-safe publishable key.
+- Do not apply the bundled historical migrations to another database or put a service-role key in the browser.
 
 ## Stack
 
-- pnpm workspaces, Node.js 24, TypeScript 5.9
-- API: Express 5
-- DB: PostgreSQL + Drizzle ORM
-- Validation: Zod (`zod/v4`), `drizzle-zod`
-- API codegen: Orval (from OpenAPI spec)
-- Build: esbuild (CJS bundle)
+- pnpm workspaces, TypeScript, React, and Vite
+- Authentication and learner data: the existing Supabase project, accessed with its JavaScript client
+- Authorization: Supabase Row Level Security; users must not be able to assign their own roles
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `artifacts/bridgelib/` — BridgeLIB web application
+- `artifacts/bridgelib/legacy-foundation/` — original supplied website and database-status notes
+- `artifacts/api-server/` — shared API scaffold (not the source of BridgeLIB learner data)
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- Keep the existing Supabase database and authentication; do not migrate the app to the workspace database.
+- Roles are assigned through a trusted administrative process, never by learner signup.
+- School submissions remain pending until reviewed; a submission does not verify a school.
+- Classes, digital exams, and progress tracking must not be represented with fabricated learner data.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- Public landing page with school learner, WASSCE candidate, and independent learner signup paths.
+- Email/password account creation and sign-in, profile onboarding, subject and class views, and pending school applications.
+- Exam engine, class invitation acceptance, and progress history are not implemented in the supplied foundation.
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+No additional preferences stated.
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- The database already has applied migrations in the existing Supabase project; review its status notes before any schema work.
 
 ## Pointers
 
-- See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details
+- See `artifacts/bridgelib/legacy-foundation/README.md` and `database/SCHEMA_STATUS.md` for the supplied project's scope and database history.
+- See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details.
