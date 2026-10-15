@@ -190,11 +190,5 @@
     });
   }
   init();
-  
-  document.getElementById("subjectList").addEventListener("click", (event) => {
-    const card = event.target.closest(".subject-item");
-    if (!card) return;
-    alert("You selected: " + card.querySelector("small")?.previousSibling?.textContent?.trim());
-  });
 
 })();

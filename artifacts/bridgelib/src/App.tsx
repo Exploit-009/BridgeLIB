@@ -14,6 +14,16 @@ import {
 } from 'lucide-react';
 import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import NotFound from '@/pages/not-found';
 
 type AuthMode = 'signup' | 'login';
@@ -78,6 +88,7 @@ function BridgeHome() {
   const [toast, setToast] = useState<Toast>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
   const [classes, setClasses] = useState<LearningClass[]>([]);
   const [profileState, setProfileState] = useState<'loading' | 'ready' | 'error'>('loading');
   const [subjectsState, setSubjectsState] = useState<'loading' | 'ready' | 'error'>('loading');
@@ -112,6 +123,10 @@ function BridgeHome() {
     const timer = window.setTimeout(() => setToast(null), 4500);
     return () => window.clearTimeout(timer);
   }, [toast]);
+
+  useEffect(() => {
+    if (!user) setSelectedSubject(null);
+  }, [user]);
 
   const loadDashboard = async (current: User) => {
     setProfileState('loading');
@@ -345,9 +360,53 @@ function BridgeHome() {
               {subjectsState === 'loading' && <><div className="loading-block" /><div className="loading-block" /></>}
               {subjectsState === 'error' && <div className="list-state" role="alert" data-testid="status-subjects-error">Subjects could not be loaded. {subjectError}<br /><button className="text-button" onClick={() => user && void loadDashboard(user)} data-testid="button-retry-subjects">Try again</button></div>}
               {subjectsState === 'ready' && subjects.length === 0 && <div className="list-state" data-testid="status-subjects-empty">Subject resources will appear here as they are added.</div>}
-              {subjectsState === 'ready' && subjects.map((subject) => (
-                <div className="subject-item" key={subject.id} data-testid={`card-subject-${subject.id}`}>{subject.name}<small>{subject.description || 'Subject'}</small></div>
-              ))}
+              {subjectsState === 'ready' && (
+                <Dialog
+                  open={selectedSubject !== null}
+                  onOpenChange={(open) => {
+                    if (!open) setSelectedSubject(null);
+                  }}
+                >
+                  {subjects.map((subject) => (
+                    <DialogTrigger asChild key={subject.id}>
+                      <button
+                        className="subject-item subject-card-trigger"
+                        type="button"
+                        onClick={() => setSelectedSubject(subject)}
+                        aria-label={`View ${subject.name} learning details`}
+                        data-testid={`card-subject-${subject.id}`}
+                      >
+                        {subject.name}
+                        <small>{subject.description || 'Subject'}</small>
+                      </button>
+                    </DialogTrigger>
+                  ))}
+                  <DialogContent className="subject-dialog" data-testid="dialog-subject-details">
+                    {selectedSubject && (
+                      <>
+                        <DialogHeader className="subject-dialog-header">
+                          <span className="subject-dialog-kicker">SUBJECT OVERVIEW</span>
+                          <DialogTitle className="subject-dialog-title">{selectedSubject.name}</DialogTitle>
+                          <DialogDescription className="subject-dialog-description">
+                            {selectedSubject.description?.trim() || 'No description has been added for this subject yet.'}
+                          </DialogDescription>
+                        </DialogHeader>
+                        <section className="subject-learning-note" aria-label="Learning resources">
+                          <h4>Learning resources</h4>
+                          <p>Lessons, activities, and practice for {selectedSubject.name} will appear here as they are added to BridgeLIB.</p>
+                        </section>
+                        <DialogFooter className="subject-dialog-footer">
+                          <DialogClose asChild>
+                            <button className="bridge-button secondary" type="button" data-testid="button-close-subject-dialog">
+                              Back to subjects
+                            </button>
+                          </DialogClose>
+                        </DialogFooter>
+                      </>
+                    )}
+                  </DialogContent>
+                </Dialog>
+              )}
             </div>
           </section>
 
