@@ -128,7 +128,7 @@
     } else if (!subjects?.length) {
       $("subjectList").innerHTML = '<p class="muted">Subject resources will appear here soon.</p>';
     } else {
-      $("subjectList").innerHTML = subjects.map(s => `<div class="subject-item">${escapeHtml(s.name)}<small>${escapeHtml(s.description || "Lessons and practice")}</small></div>`).join("");
+      $("subjectList").innerHTML = subjects.map(s => `<div class="subject-item" role="button" tabindex="0">${escapeHtml(s.name)}<small>${escapeHtml(s.description || "Lessons and practice")}</small></div>`).join("");
     }
     const { data: classes, error: classError } = await client.from("classes").select("id,name,education_level,grade_level,academic_year,status").order("created_at", {ascending:false}).limit(20);
     if (classError) {
@@ -190,4 +190,11 @@
     });
   }
   init();
+  
+  document.getElementById("subjectList").addEventListener("click", (event) => {
+    const card = event.target.closest(".subject-item");
+    if (!card) return;
+    alert("You selected: " + card.querySelector("small")?.previousSibling?.textContent?.trim());
+  });
+
 })();
