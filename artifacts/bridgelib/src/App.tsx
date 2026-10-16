@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { Route, Switch, Router as WouterRouter } from 'wouter';
+import { Link, Route, Switch, Router as WouterRouter, useLocation } from 'wouter';
 import {
   ArrowRight,
   ArrowUpRight,
@@ -25,6 +25,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import NotFound from '@/pages/not-found';
+import AdminDashboard from '@/pages/admin-dashboard';
 
 type AuthMode = 'signup' | 'login';
 type LearnerPath = 'school_learner' | 'wassce_candidate' | 'independent_learner';
@@ -77,7 +78,40 @@ function Brand() {
   );
 }
 
+function AdminAccessNotice({
+  message,
+  onReturnHome,
+  onRetry,
+}: {
+  message: string;
+  onReturnHome: () => void;
+  onRetry?: () => void;
+}) {
+  return (
+    <main className="admin-access-page" data-testid="admin-access-denied">
+      <div className="bridge-wrap">
+        <section className="admin-access-card" role="alert">
+          <p className="eyebrow">ADMIN ACCESS</p>
+          <h1>Access denied</h1>
+          <p>{message}</p>
+          <div className="admin-access-actions">
+            {onRetry && (
+              <button className="bridge-button primary" type="button" onClick={onRetry} data-testid="button-retry-admin-check">
+                Retry profile check
+              </button>
+            )}
+            <button className="bridge-button secondary" type="button" onClick={onReturnHome} data-testid="button-return-from-admin">
+              Return to learning space
+            </button>
+          </div>
+        </section>
+      </div>
+    </main>
+  );
+}
+
 function BridgeHome() {
+  const [location, setLocation] = useLocation();
   const [user, setUser] = useState<User | null>(null);
   const [restoring, setRestoring] = useState(true);
   const [mode, setMode] = useState<AuthMode>('signup');
@@ -300,6 +334,40 @@ function BridgeHome() {
     }
   };
 
+  const isAdminRoute = location === '/admin' || location === '/admin/';
+  const isVerifiedAdmin = Boolean(user && profileState === 'ready' && profile?.role === 'admin');
+  const returnHome = () => setLocation('/');
+  const adminRouteView = !user ? (
+    <AdminAccessNotice
+      message="Sign in with a BridgeLIB administrator account. Access is denied until the profile role can be verified."
+      onReturnHome={returnHome}
+    />
+  ) : profileState === 'loading' ? (
+    <main className="admin-access-page" aria-live="polite" data-testid="admin-access-checking">
+      <div className="bridge-wrap">
+        <section className="admin-access-card">
+          <p className="eyebrow">ADMIN ACCESS</p>
+          <h1>Checking your profile</h1>
+          <p>Admin access stays closed until BridgeLIB can verify your database profile.</p>
+          <div className="loading-line" aria-hidden="true" />
+        </section>
+      </div>
+    </main>
+  ) : profileState === 'error' ? (
+    <AdminAccessNotice
+      message="We couldn't verify your admin profile. Access is denied until the profile check succeeds."
+      onReturnHome={returnHome}
+      onRetry={() => void loadDashboard(user)}
+    />
+  ) : profile?.role !== 'admin' ? (
+    <AdminAccessNotice
+      message="This account does not have an admin role. No management data is available on this page."
+      onReturnHome={returnHome}
+    />
+  ) : (
+    <AdminDashboard onNavigateHome={returnHome} onSignOut={signOut} />
+  );
+
   const restoreView = restoring ? (
     <main className="app-section" aria-live="polite">
       <div className="bridge-wrap">
@@ -308,6 +376,8 @@ function BridgeHome() {
         <div className="loading-block" />
       </div>
     </main>
+  ) : isAdminRoute ? (
+    adminRouteView
   ) : user ? (
     <main className="app-section" id="dashboard">
       <div className="bridge-wrap">
@@ -574,7 +644,10 @@ function BridgeHome() {
           <a href="#pathways" data-testid="link-learning-paths">Learning paths</a>
           <button className="bridge-button quiet" onClick={() => openAuth('login')} data-testid="button-nav-login">Sign in</button>
         </nav>}
-        {user && <span className="bridge-nav" data-testid="text-signed-in">Learning space</span>}
+        {user && <nav className="bridge-nav signed-in-nav" aria-label="Signed-in navigation" data-testid="text-signed-in">
+          <Link href="/" data-testid="link-learning-space">Learning space</Link>
+          {isVerifiedAdmin && <Link href="/admin" aria-current={isAdminRoute ? 'page' : undefined} data-testid="link-admin-dashboard">Admin dashboard</Link>}
+        </nav>}
       </header>
       {restoreView}
       {toast && <div className={`toast ${toast.kind}`} role="status" data-testid="status-toast">{toast.message}</div>}
@@ -586,6 +659,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={BridgeHome} />
+      <Route path="/admin" component={BridgeHome} />
       <Route component={NotFound} />
     </Switch>
   );
