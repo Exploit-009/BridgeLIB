@@ -656,9 +656,152 @@ function BridgeHome() {
 }
 
 
+
 function PracticePage() {
+  const [subjects, setSubjects] = useState<any[]>([]);
+  const [subjectId, setSubjectId] = useState("");
+  const [questions, setQuestions] = useState<any[]>([]);
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [review, setReview] = useState<any[]>([]);
+  const [result, setResult] = useState<any>(null);
+  const [secondsLeft, setSecondsLeft] = useState(30 * 60);
+  const [loading, setLoading] = useState(true);
+  const [examStarted, setExamStarted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  useEffect(() => {
+    async function loadSubjects() {
+      const { data, error } = await supabase
+        .from("subjects")
+        .select("id, name")
+        .order("name");
+
+      if (error) {
+        setErrorMessage(error.message);
+      } else {
+        setSubjects(data ?? []);
+      }
+
+      setLoading(false);
+    }
+
+    loadSubjects();
+  }, []);
+
+  useEffect(() => {
+    if (!examStarted || result) return;
+
+    const timer = window.setInterval(() => {
+      setSecondsLeft((previous) => {
+        if (previous <= 1) {
+          window.clearInterval(timer);
+          return 0;
+        }
+        return previous - 1;
+      });
+    }, 1000);
+
+    return () => window.clearInterval(timer);
+  }, [examStarted, result]);
+
+  useEffect(() => {
+    if (examStarted && secondsLeft === 0 && !result && !submitting) {
+      submitExam();
+    }
+  }, [secondsLeft, examStarted, result, submitting]);
+
+  async function startExam() {
+    if (!subjectId) {
+      setErrorMessage("Please choose a subject first.");
+      return;
+    }
+
+    setLoading(true);
+    setErrorMessage("");
+    setAnswers({});
+    setReview([]);
+    setResult(null);
+
+    const { data, error } = await supabase
+      .from("exam_questions")
+      .select("id, prompt, options, explanation, exam_type")
+      .eq("subject_id", Number(subjectId))
+      .eq("is_published", true)
+      .limit(20);
+
+    if (error) {
+      setErrorMessage(error.message);
+      setLoading(false);
+      return;
+    }
+
+    if (!data || data.length === 0) {
+      setErrorMessage(
+        "No published questions are available for this subject yet."
+      );
+      setLoading(false);
+      return;
+    }
+
+    setQuestions(data);
+    setSecondsLeft(30 * 60);
+    setExamStarted(true);
+    setLoading(false);
+  }
+
+  async function submitExam() {
+    if (submitting || result || questions.length === 0) return;
+
+    setSubmitting(true);
+    setErrorMessage("");
+
+    try {
+      const { data: authData, error: authError } =
+        await supabase.auth.getUser();
+
+      if (authError) throw authError;
+
+      if (!authData.user) {
+        throw new Error(
+          "Please sign in to BridgeLIB before submitting your exam."
+        );
+      }
+
+      const payload = questions
+        .filter((question) => answers[question.id])
+        .map((question) => ({
+          question_id: question.id,
+          selected_option: answers[question.id],
+        }));
+
+      if (payload.length === 0) {
+        throw new Error("Answer at least one question before submitting.");
+      }
+
+      const { data, error } = await supabase.rpc(
+        "submit_exam_attempt",
+        { p_answers: payload }
+      );
+
+      if (error) throw error;
+
+      setResult(data);
+      setReview(data.review ?? []);
+      setExamStarted(false);
+    } catch (error: any) {
+      setErrorMessage(error.message || "Could not submit your exam.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  const answeredCount = Object.keys(answers).length;
+  const minutes = Math.floor(secondsLeft / 60);
+  const seconds = secondsLeft % 60;
+
   return (
-    <main className="min-h-screen bg-[#f6f7fb] p-6">
+    <main className="min-h-screen bg-[#f6f7fb] p-4 sm:p-6">
       <div className="mx-auto max-w-4xl">
         <a href="/" className="text-blue-600 hover:underline">
           ← Back to BridgeLIB
@@ -667,26 +810,212 @@ function PracticePage() {
         <h1 className="mt-6 text-3xl font-bold text-slate-900">
           Practice Exams
         </h1>
-
         <p className="mt-2 text-slate-600">
-          Prepare for your WASSCE with practice questions and explanations.
+          Practise your subjects, track your progress, and learn from
+          explanations.
         </p>
 
-        <div className="mt-6 rounded-xl border border-slate-200 bg-white p-6">
-          <h2 className="text-xl font-semibold text-slate-900">
-            Exam Practice
-          </h2>
+        {errorMessage && (
+          <div
+            role="alert"
+            className="mt-5 rounded-lg border border-amber-300 bg-amber-50 p-4 text-amber-900"
+          >
+            {errorMessage}
+          </div>
+        )}
 
-          <p className="mt-2 text-slate-600">
-            The practice exam interface is being connected to the BridgeLIB
-            question bank. Questions will appear here once that integration
-            is complete.
-          </p>
-        </div>
+        {!examStarted && !result && (
+          <section className="mt-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <h2 className="text-xl font-semibold">Choose your subject</h2>
+
+            <label
+              htmlFor="practice-subject"
+              className="mt-4 block text-sm font-medium text-slate-700"
+            >
+              Subject
+            </label>
+
+            <select
+              id="practice-subject"
+              value={subjectId}
+              onChange={(event) => setSubjectId(event.target.value)}
+              className="mt-2 w-full rounded-lg border border-slate-300 bg-white p-3"
+              disabled={loading}
+            >
+              <option value="">Select a subject</option>
+              {subjects.map((subject) => (
+                <option key={subject.id} value={subject.id}>
+                  {subject.name}
+                </option>
+              ))}
+            </select>
+
+            <p className="mt-3 text-sm text-slate-500">
+              Up to 20 questions per session · 30-minute timer
+            </p>
+
+            <button
+              type="button"
+              onClick={startExam}
+              disabled={loading || !subjectId}
+              className="mt-5 w-full rounded-lg bg-[#0b5fff] px-5 py-3 font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {loading ? "Loading..." : "Start Practice"}
+            </button>
+          </section>
+        )}
+
+        {examStarted && !result && (
+          <>
+            <section className="mt-5 rounded-xl border border-slate-200 bg-white p-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <span className="font-medium text-slate-700">
+                  Answered: {answeredCount} / {questions.length}
+                </span>
+                <span
+                  className={`font-bold tabular-nums ${
+                    secondsLeft < 300 ? "text-red-600" : "text-slate-900"
+                  }`}
+                >
+                  Time: {minutes}:{String(seconds).padStart(2, "0")}
+                </span>
+              </div>
+
+              <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-200">
+                <div
+                  className="h-full rounded-full bg-[#0b5fff] transition-all"
+                  style={{
+                    width: `${(answeredCount / questions.length) * 100}%`,
+                  }}
+                />
+              </div>
+            </section>
+
+            {questions.map((question, index) => (
+              <section
+                key={question.id}
+                className="mt-4 rounded-xl border border-slate-200 bg-white p-5"
+              >
+                <p className="text-sm font-semibold text-blue-700">
+                  Question {index + 1} of {questions.length}
+                </p>
+
+                <h2 className="mt-2 font-semibold text-slate-900">
+                  {question.prompt}
+                </h2>
+
+                <div className="mt-4 space-y-3">
+                  {(question.options as any[]).map((option) => (
+                    <label
+                      key={option.id}
+                      className={`flex cursor-pointer items-start gap-3 rounded-lg border p-3 ${
+                        answers[question.id] === option.id
+                          ? "border-blue-500 bg-blue-50"
+                          : "border-slate-200"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name={`question-${question.id}`}
+                        value={option.id}
+                        checked={answers[question.id] === option.id}
+                        onChange={() =>
+                          setAnswers((previous) => ({
+                            ...previous,
+                            [question.id]: option.id,
+                          }))
+                        }
+                        className="mt-1"
+                      />
+                      <span>{option.text}</span>
+                    </label>
+                  ))}
+                </div>
+              </section>
+            ))}
+
+            <button
+              type="button"
+              onClick={submitExam}
+              disabled={submitting}
+              className="mt-5 w-full rounded-lg bg-[#0b5fff] px-5 py-3 font-semibold text-white disabled:opacity-50"
+            >
+              {submitting ? "Marking exam..." : "Submit Exam"}
+            </button>
+          </>
+        )}
+
+        {result && (
+          <section className="mt-6 rounded-xl border border-slate-200 bg-white p-5">
+            <h2 className="text-2xl font-bold text-slate-900">
+              Your Results
+            </h2>
+
+            <p className="mt-3 text-lg">
+              Score: <strong>{result.score} / {result.total_questions}</strong>
+            </p>
+
+            <p className="mt-1 text-slate-600">
+              Percentage:{" "}
+              <strong>
+                {Math.round(
+                  (result.score / result.total_questions) * 100
+                )}%
+              </strong>
+            </p>
+
+            <h3 className="mt-6 text-xl font-semibold">Review answers</h3>
+
+            {review.map((item, index) => (
+              <div
+                key={item.question_id}
+                className="mt-4 border-t border-slate-200 pt-4"
+              >
+                <p className="font-semibold">
+                  {index + 1}. {item.prompt}
+                </p>
+
+                <p
+                  className={`mt-2 font-medium ${
+                    item.is_correct ? "text-green-700" : "text-red-700"
+                  }`}
+                >
+                  {item.is_correct ? "Correct" : "Incorrect"}
+                </p>
+
+                <p className="mt-1 text-sm text-slate-600">
+                  Correct option: {item.correct_option}
+                </p>
+
+                {item.explanation && (
+                  <p className="mt-2 text-slate-700">
+                    Explanation: {item.explanation}
+                  </p>
+                )}
+              </div>
+            ))}
+
+            <button
+              type="button"
+              onClick={() => {
+                setResult(null);
+                setReview([]);
+                setQuestions([]);
+                setAnswers({});
+                setExamStarted(false);
+                setErrorMessage("");
+              }}
+              className="mt-6 w-full rounded-lg bg-[#0b5fff] px-5 py-3 font-semibold text-white"
+            >
+              Practise Another Subject
+            </button>
+          </section>
+        )}
       </div>
     </main>
   );
 }
+
 
 function Router() {
   return (
