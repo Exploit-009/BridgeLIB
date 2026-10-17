@@ -655,11 +655,45 @@ function BridgeHome() {
   );
 }
 
+
+function PracticePage() {
+  return (
+    <main className="min-h-screen bg-[#f6f7fb] p-6">
+      <div className="mx-auto max-w-4xl">
+        <a href="/" className="text-blue-600 hover:underline">
+          ← Back to BridgeLIB
+        </a>
+
+        <h1 className="mt-6 text-3xl font-bold text-slate-900">
+          Practice Exams
+        </h1>
+
+        <p className="mt-2 text-slate-600">
+          Prepare for your WASSCE with practice questions and explanations.
+        </p>
+
+        <div className="mt-6 rounded-xl border border-slate-200 bg-white p-6">
+          <h2 className="text-xl font-semibold text-slate-900">
+            Exam Practice
+          </h2>
+
+          <p className="mt-2 text-slate-600">
+            The practice exam interface is being connected to the BridgeLIB
+            question bank. Questions will appear here once that integration
+            is complete.
+          </p>
+        </div>
+      </div>
+    </main>
+  );
+}
+
 function Router() {
   return (
     <Switch>
       <Route path="/" component={BridgeHome} />
       <Route path="/admin" component={BridgeHome} />
+      <Route path="/practice" component={PracticePage} />
       <Route component={NotFound} />
     </Switch>
   );
